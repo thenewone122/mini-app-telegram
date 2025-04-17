@@ -1,26 +1,277 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@config '../../tailwind.config.js';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: "Noto Sans", Arial, Helvetica, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Animation delay utilities for loaders */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  .animation-delay-500 {
+    animation-delay: 500ms;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  :root {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 93 50% 45%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 93 50% 45%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 93 50% 45%;
+
+    --radius: 0.3rem;
+
+    /* Chess.com specific colors */
+    --chess-light: 60 30% 90%;
+    --chess-dark: 93 40% 60%;
+    --chess-highlight: 60 100% 70%;
+    --chess-move: 93 70% 45%;
+    --chess-check: 0 80% 60%;
+    --chess-premove: 240 50% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Professional chess UI styles */
+.chess-button {
+  @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors;
+}
+
+.chess-button-secondary {
+  @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium rounded-md transition-colors;
+}
+
+.chess-notation {
+  @apply text-xs font-mono text-muted-foreground;
+}
+
+.move-history-item {
+  @apply px-2 py-1 rounded-sm hover:bg-secondary/50 cursor-pointer flex items-center;
+}
+
+.move-history-item.active {
+  @apply bg-primary/20 text-primary;
+}
+
+.captured-piece {
+  @apply text-lg opacity-70;
+}
+
+/* Piece animation */
+@keyframes piece-move {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.piece-hover:hover {
+  animation: piece-move 0.3s ease;
+  cursor: pointer;
+}
+
+/* Chess board square animations */
+.square-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 0, 0.4);
+  animation: square-fade 1s ease-out forwards;
+}
+
+@keyframes square-fade {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Pulse animation for waiting */
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Professional stats counter */
+.stats-counter {
+  @apply text-sm text-muted-foreground;
+}
+
+.stats-counter .number {
+  @apply text-foreground font-medium;
+}
+
+/* Professional bet badge */
+.bet-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary;
+}
+
+/* Game card styles */
+.game-card {
+  @apply relative overflow-hidden transition-all duration-200 hover:shadow-md;
+}
+
+.game-card:hover {
+  @apply -translate-y-1;
+}
+
+/* Telegram-style bottom navigation for mobile */
+.mobile-nav {
+  @apply fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around items-center py-2 z-50;
+}
+
+.mobile-nav-item {
+  @apply flex flex-col items-center justify-center p-2 text-muted-foreground;
+}
+
+.mobile-nav-item.active {
+  @apply text-primary;
+}
+
+.mobile-nav-item-text {
+  @apply text-xs mt-1;
+}
+
+/* Professional tabs */
+.chess-tabs {
+  @apply flex border-b border-border;
+}
+
+.chess-tab {
+  @apply px-4 py-2 font-medium text-muted-foreground border-b-2 border-transparent hover:text-foreground transition-colors;
+}
+
+.chess-tab.active {
+  @apply text-primary border-primary;
+}
+
+/* Betting UI elements */
+.bet-slider {
+  @apply w-full h-2 bg-secondary rounded-full appearance-none cursor-pointer;
+}
+
+.bet-slider::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 rounded-full bg-primary;
+}
+
+.bet-amount-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/20 text-primary;
+}
+
+/* Time control display */
+.time-display {
+  @apply font-mono text-lg font-bold;
+}
+
+.time-display.danger {
+  @apply text-destructive;
+}
+
+.time-display.warning {
+  @apply text-yellow-500;
+}
+
+/* Game status indicators */
+.status-indicator {
+  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium;
+}
+
+.status-indicator.active {
+  @apply bg-primary/20 text-primary;
+}
+
+.status-indicator.waiting {
+  @apply bg-yellow-500/20 text-yellow-500;
+}
+
+.status-indicator.completed {
+  @apply bg-green-500/20 text-green-500;
+}
+
+/* Rating display */
+.rating-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-secondary;
+}
+
+/* Win/loss indicators */
+.result-indicator {
+  @apply inline-flex items-center gap-1 font-medium;
+}
+
+.result-indicator.win {
+  @apply text-primary;
+}
+
+.result-indicator.loss {
+  @apply text-destructive;
+}
+
+.result-indicator.draw {
+  @apply text-yellow-500;
 }
