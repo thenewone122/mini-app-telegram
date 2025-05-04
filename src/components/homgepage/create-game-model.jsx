@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,22 +19,33 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import socket from "@/lib/socket";
+import { useUser } from "@/context/context";
 
-export function CreateGameModal() {
+export function CreateGameModal({ amount,time }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const amountValue = useMemo(() => amount ?? 100, [amount]);
+  const timeValue = useMemo(() => time ?? 5, [time]);
 
   const handleQuickStart = () => {
-
-// socket.emit('create-bet',{
-//     userId:1,
-//     amount:20,
-//     timeControl:10
-
-// })
-
-    setOpen(false);
-    router.push("/waiting-for-opponent");
+    socket.emit(
+      "create-bet",
+      {
+        userId: parseInt(user.userId),
+        amount: amountValue,
+        timeControl: timeValue,
+      },
+      (response) => {
+        if (response.success && response.betId) {
+          router.push(`/waiting-for-opponent/${response.betId}`);
+          setOpen(false);
+        } else {
+          setOpen(false);
+          alert(`${response.error}`);
+        }
+      }
+    );
   };
 
   const handleCustomize = () => {

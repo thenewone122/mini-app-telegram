@@ -8,32 +8,37 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Clock, Coins, Users, X } from "lucide-react"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Loading } from "@/components/loading/loading"
 import { MobileNavigation } from "@/components/homgepage/mobile-navigation"
+import socket from "@/lib/socket"
+import { useUser } from "@/context/context"
 export default function WaitingForOpponentPage() {
   const router = useRouter()
+  const {id} = useParams();
+  const {user}=useUser();
+  console.log(id,"waiting for opponent is working")
   const [waitTime, setWaitTime] = useState(0)
   const [cancellingGame, setCancellingGame] = useState(false)
+useEffect(() => {
+  socket.emit("join-room", { id, user });
+
+}, [socket])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setWaitTime((prev) => prev + 1)
-    }, 1000)
+    if (!socket) return;
 
-    // Simulate finding an opponent after 10-20 seconds
-    const timeout = setTimeout(
-      () => {
-        router.push(`/game/new-${Date.now()}`)
-      },
-      10000 + Math.random() * 10000,
-    )
+    const handleGameStart = (data) => {
+      console.log("working")
+      router.push(`/game/${data.betId}`);
+    };
+
+    socket.on("game-started", handleGameStart);
 
     return () => {
-      clearInterval(interval)
-      clearTimeout(timeout)
-    }
-  }, [router])
+      socket.off("game-started", handleGameStart);
+    };
+  }, [socket, router]);
 
   const formatWaitTime = (seconds) => {
     const mins = Math.floor(seconds / 60)

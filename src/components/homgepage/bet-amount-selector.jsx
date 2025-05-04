@@ -50,7 +50,7 @@ export function BetAmountSelector({
       <div className="flex items-center justify-between mb-2">
         <label className="text-sm font-medium">Bet Amount</label>
         <div className="bet-amount-badge">
-          <Coins className="w-3.5 h-3.5 mr-1" />${betAmount}
+          <Coins className="w-3.5 h-3.5 mr-1" />{betAmount} Birr
         </div>
       </div>
 

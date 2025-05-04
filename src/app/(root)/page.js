@@ -1,35 +1,91 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronRight, Clock, Trophy, Wallet, CastleIcon as ChessKnight, Award } from "lucide-react"
-import Link from "next/link"
-import { BetAmountSelector } from "@/components/homgepage/bet-amount-selector"
-import { TimeControlSelector } from "@/components/homgepage/time-control-selector"
-import { MobileNavigation } from "@/components/homgepage/mobile-navigation"
-import { CreateGameModal } from "@/components/homgepage/create-game-model"
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  ChevronRight,
+  Clock,
+  Trophy,
+  Wallet,
+  CastleIcon as ChessKnight,
+  Award,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { BetAmountSelector } from "@/components/homgepage/bet-amount-selector";
+import { TimeControlSelector } from "@/components/homgepage/time-control-selector";
+import { MobileNavigation } from "@/components/homgepage/mobile-navigation";
+import { CreateGameModal } from "@/components/homgepage/create-game-model";
+
+import { useEffect, useState } from "react";
+import axiosInstance from "@/lib/axios";
+import { useUser } from "@/context/context";
+import { Loading } from "@/components/loading/loading";
+import BetCards from "@/components/homgepage/bet-cards";
 
 export default function Home() {
+  const { user } = useUser();
+  const [amount, setAmount] = useState(null);
+  const [time, setTime] = useState(null);
+  const [userData, setUserData] = useState(null);
+  function handleAmountOnChange(newValue) {
+    setAmount(newValue);
+  }
+  function handleTimeOnCahnge(minute, increment) {
+    setTime(minute);
+  }
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const response = await axiosInstance.get(`/user/${user.userId}`);
+      setUserData(response.data);
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  if (!user || !userData) {
+    return <Loading type="spinner" fullScreen={true} />;
+  }
+
   return (
     <main className="flex min-h-screen flex-col pb-16 md:pb-0">
       {/* Header with balance */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border">
-        <div className="py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold flex items-center">
-              <span className="text-primary mr-1">♟</span> Chess Arena
-            </h1>
-            <div className="flex items-center gap-4">
-              <div className="stats-counter hidden md:block">
-                <span className="number">1,245</span> Games Today
+      <header className="px-3 py-3 sticky top-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="relative mr-3">
+              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                <span className="text-primary text-2xl transform -translate-y-0.5">
+                  ♟
+                </span>
               </div>
-              <Link href="/transactions">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
-                  <Wallet className="w-4 h-4 text-primary" />
-                  <span className="font-medium">1,250.00 birr</span>
-                </div>
-              </Link>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-chess-highlight rounded-full flex items-center justify-center text-[10px] font-bold text-black">
+                +
+              </div>
             </div>
+            <h1 className="text-xl font-bold tracking-tight">
+              Play <span className="text-primary">Chess</span>
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/transactions" className="relative group">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/20 rounded-full transition-all duration-200 group-hover:bg-primary/20">
+                <Wallet className="w-4 h-4 text-primary" />
+                <span className="font-medium">{userData.balance} Birr</span>
+              </div>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
+                +
+              </span>
+            </Link>
           </div>
         </div>
       </header>
@@ -42,15 +98,17 @@ export default function Home() {
               <ChessKnight className="w-5 h-5 mr-2 text-primary" />
               Create a Game
             </CardTitle>
-            <CardDescription>Set your bet amount and wait for an opponent</CardDescription>
+            <CardDescription>
+              Set your bet amount and wait for an opponent
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <BetAmountSelector />
-                <TimeControlSelector />
+                <BetAmountSelector onChange={handleAmountOnChange} />
+                <TimeControlSelector onChange={handleTimeOnCahnge} />
               </div>
-                  <CreateGameModal/>
+              <CreateGameModal amount={amount} time={time} />
             </div>
           </CardContent>
         </Card>
@@ -82,46 +140,7 @@ export default function Home() {
 
           {/* Bets Tab */}
           <TabsContent value="bets" className="space-y-4 mt-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Available Games</h2>
-              <div className="stats-counter">
-                <span className="number">24</span> Active Games
-              </div>
-            </div>
-
-            {/* Bet Cards */}
-            <div className="space-y-3">
-              {[
-                { id: 1, player: "Magnus", amount: 200, time: "5+3", rating: 2200, avatar: "M" },
-                { id: 2, player: "Hikaru", amount: 150, time: "10+5", rating: 2150, avatar: "H" },
-                { id: 3, player: "Fabiano", amount: 300, time: "15+10", rating: 2300, avatar: "F" },
-              ].map((bet) => (
-                <Card key={bet.id} className="game-card overflow-hidden bg-card border-border">
-                  <div className="flex items-center p-4">
-                    <Avatar className="h-10 w-10 mr-4 bg-secondary">
-                      <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={bet.player} />
-                      <AvatarFallback>{bet.avatar}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <div className="font-medium">{bet.player}</div>
-                        <div className="rating-badge ml-2">{bet.rating}</div>
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {bet.time}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="bet-badge mb-1">${bet.amount}</div>
-                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                        Join Game
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <BetCards userData={userData} />
           </TabsContent>
 
           {/* Winners Tab */}
@@ -135,26 +154,67 @@ export default function Home() {
 
             <div className="space-y-3">
               {[
-                { id: 1, winner: "Alexandra", loser: "Boris", amount: 250, time: "2h ago", avatar: "A" },
-                { id: 2, winner: "Magnus", loser: "Wesley", amount: 180, time: "5h ago", avatar: "M" },
-                { id: 3, winner: "Hikaru", loser: "Levon", amount: 320, time: "Yesterday", avatar: "H" },
-                { id: 4, winner: "Anish", loser: "Maxime", amount: 150, time: "Yesterday", avatar: "A" },
+                {
+                  id: 1,
+                  winner: "Alexandra",
+                  loser: "Boris",
+                  amount: 250,
+                  time: "2h ago",
+                  avatar: "A",
+                },
+                {
+                  id: 2,
+                  winner: "Magnus",
+                  loser: "Wesley",
+                  amount: 180,
+                  time: "5h ago",
+                  avatar: "M",
+                },
+                {
+                  id: 3,
+                  winner: "Hikaru",
+                  loser: "Levon",
+                  amount: 320,
+                  time: "Yesterday",
+                  avatar: "H",
+                },
+                {
+                  id: 4,
+                  winner: "Anish",
+                  loser: "Maxime",
+                  amount: 150,
+                  time: "Yesterday",
+                  avatar: "A",
+                },
               ].map((game) => (
-                <Card key={game.id} className="game-card overflow-hidden bg-card border-border">
+                <Card
+                  key={game.id}
+                  className="game-card overflow-hidden bg-card border-border"
+                >
                   <div className="flex items-center p-4">
                     <Avatar className="h-10 w-10 mr-4 bg-secondary">
-                      <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={game.winner} />
+                      <AvatarImage
+                        src={`/placeholder.svg?height=40&width=40`}
+                        alt={game.winner}
+                      />
                       <AvatarFallback>{game.avatar}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="font-medium flex items-center">
-                        {game.winner} <Trophy className="w-3 h-3 mx-1 text-chess-highlight" />
-                        <span className="text-sm text-muted-foreground">vs {game.loser}</span>
+                        {game.winner}{" "}
+                        <Trophy className="w-3 h-3 mx-1 text-chess-highlight" />
+                        <span className="text-sm text-muted-foreground">
+                          vs {game.loser}
+                        </span>
                       </div>
-                      <div className="text-sm text-muted-foreground">{game.time}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {game.time}
+                      </div>
                     </div>
                     <div className="flex items-center">
-                      <div className="result-indicator win">+${game.amount}</div>
+                      <div className="result-indicator win">
+                        +${game.amount}
+                      </div>
                       <ChevronRight className="w-4 h-4 ml-2 text-muted-foreground" />
                     </div>
                   </div>
@@ -171,7 +231,9 @@ export default function Home() {
                   <Award className="w-5 h-5 mr-2 text-primary" />
                   How to Play
                 </CardTitle>
-                <CardDescription>Learn the rules and get started</CardDescription>
+                <CardDescription>
+                  Learn the rules and get started
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -182,8 +244,9 @@ export default function Home() {
                     Creating a Game
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Set your bet amount and time control, then create a game. Your game will be listed in the "Open
-                    Bets" tab for others to join.
+                    Set your bet amount and time control, then create a game.
+                    Your game will be listed in the "Open Bets" tab for others
+                    to join.
                   </p>
                 </div>
 
@@ -195,7 +258,8 @@ export default function Home() {
                     Joining a Game
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Browse available games in the "Open Bets" tab. Click "Join Game" to accept a bet and start playing.
+                    Browse available games in the "Open Bets" tab. Click "Join
+                    Game" to accept a bet and start playing.
                   </p>
                 </div>
 
@@ -207,8 +271,9 @@ export default function Home() {
                     Playing Chess
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Standard chess rules apply. The player with white pieces moves first. When the game ends, the winner
-                    receives the bet amount.
+                    Standard chess rules apply. The player with white pieces
+                    moves first. When the game ends, the winner receives the bet
+                    amount.
                   </p>
                 </div>
 
@@ -220,13 +285,17 @@ export default function Home() {
                     Managing Your Balance
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Use the Telegram bot commands to deposit or withdraw funds. Your current balance is always displayed
-                    at the top of the app.
+                    Use the Telegram bot commands to deposit or withdraw funds.
+                    Your current balance is always displayed at the top of the
+                    app.
                   </p>
                 </div>
 
                 <Link href="#" className="block mt-4">
-                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
+                  <Button
+                    variant="outline"
+                    className="w-full border-primary text-primary hover:bg-primary/10"
+                  >
                     View Full Rules
                   </Button>
                 </Link>
@@ -239,5 +308,5 @@ export default function Home() {
       {/* Mobile Navigation */}
       <MobileNavigation />
     </main>
-  )
+  );
 }
