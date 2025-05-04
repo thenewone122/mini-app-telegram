@@ -119,7 +119,7 @@ export default function ChessGame() {
   
       return false;
     },
-    [game, betId]
+    [game, betId,user.userId]
   );
   
   // Determine if it's the player's turn

@@ -1,5 +1,5 @@
 "use client"
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,7 +23,7 @@ export default function WaitingForOpponentPage() {
 useEffect(() => {
   socket.emit("join-room", { id, user });
 
-}, [socket])
+}, [socket,id,user])
 
   useEffect(() => {
     if (!socket) return;
